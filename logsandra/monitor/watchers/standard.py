@@ -1,4 +1,6 @@
-import os, os.path, time
+import os
+import os.path
+import time
 
 class StandardWatcher(object):
 

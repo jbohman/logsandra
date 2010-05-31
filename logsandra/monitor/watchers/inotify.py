@@ -12,7 +12,7 @@ class InotifyWatcher(object):
     def __init__(self, settings, entities, callback):
         self.settings = settings
         self.entities = entities
-        self.callback = callback
+        self.callback = lambda x: callback(x.pathname)
         self.wm = pyinotify.WatchManager()
 
         pyinotify.log.setLevel(50)
