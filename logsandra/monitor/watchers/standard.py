@@ -4,10 +4,13 @@ import time
 
 class StandardWatcher(object):
 
-    def __init__(self, settings, entities, callback):
-        self.settings = settings
+    def __init__(self, entities, callback, update_freq=10, rescan_freq=20):
+        self.update_freq = update_freq
+        self.rescan_freq = rescan_freq
+
         self.entities = entities
         self.callback = callback
+
         self.files = {}
 
         for filename in self._find_files_generator():
@@ -18,7 +21,7 @@ class StandardWatcher(object):
     def loop(self):
         while True:
             current_time = time.time()
-            if (current_time - self._last_rescan_time) > self.settings['rescan']:
+            if (current_time - self._last_rescan_time) > self.rescan_freq:
                 self._last_rescan_time = self._rescan()
 
             reference_time = time.time()
@@ -28,9 +31,9 @@ class StandardWatcher(object):
                     self.files[filename] = new_mtime
                     self.callback(filename)
 
-            if self.settings['freq'] > 0:
+            if self.update_freq > 0:
                 current_time = time.time()
-                sleep = self.settings['freq'] - (current_time - reference_time)
+                sleep = self.update_freq - (current_time - reference_time)
                 if sleep > 0:
                     time.sleep(sleep)
 
@@ -51,8 +54,11 @@ class StandardWatcher(object):
                             yield filename
             # Is file
             else:
-                filename = os.path.join(os.path.abspath(entity['name']), entity['name'])
-                yield filename
+                if os.path.exists(os.path.expanduser(entity['name'])):
+                    filename = os.path.abspath(os.path.expanduser(entity['name']))
+                    yield filename
+                else:
+                    raise AttributeError('Invalid path, cannot monitor it')
 
     def _rescan(self):
         tempfiles = {}
@@ -73,11 +79,3 @@ class StandardWatcher(object):
             return os.stat(filename).st_mtime
         except os.error:
             return False
-
-
-if __name__ == '__main__':
-    def callback(x):
-        print x
-
-    sw = StandardWatcher({'freq': 1, 'rescan': 10}, [{'name': '.', 'recursive': False}], callback)
-    sw.loop()

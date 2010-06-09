@@ -3,17 +3,40 @@ import sys
 import os
 import optparse
 import time
+import multiprocessing
+import logging
 
 # Local imports
+import monitor
 import config
+import utils
 from utils.daemon import Daemon
 
 
 class Application(Daemon):
 
+    def monitor(self):
+        reader = monitor.Reader(False)
+        watcher = monitor.Watcher(self.settings['paths'], reader.callback)
+        watcher.loop()
+
     # TODO: setup application here, monitor + pylon webservice
     def run(self):
-        while 1:
+
+        # Setup logging
+        logging.basicConfig(filename=self.settings['logfile_name'], level=logging.DEBUG)
+
+        # Test to see if settings is present
+        if not hasattr(self, 'settings'):
+            print 'No settings, exiting...'
+            sys.exit(1)
+
+        # Start monitor process
+        self.monitor_process = multiprocessing.Process(target=self.monitor)
+        self.monitor_process.start()
+
+        self.running = True
+        while self.running:
             time.sleep(10)
 
 
@@ -28,11 +51,18 @@ if __name__ == '__main__':
     parser.add_option('--config-file', dest='config_file', metavar='FILE', default=default_config_file)
     parser.add_option('--working-directory', dest='working_directory', metavar='DIRECTORY', default=default_working_directory)
     parser.add_option('--pid-file', dest='pid_file', metavar='FILE', default='/tmp/logsandra.pid')
+    parser.add_option('--application-data-directory', dest='application_data_directory', default=utils.application_data_directory('logsandra'))
     (options, args) = parser.parse_args()
 
-    settings = config.parse(options.config_file)
-    application = Application(options.pid_file)
-    application.settings = settings
+    if not os.path.isdir(options.application_data_directory):
+        os.makedirs(options.application_data_directory)
+
+    output_file = os.path.join(options.application_data_directory, 'logsandra.log')
+
+    application = Application(options.pid_file, stdout=output_file, stderr=output_file)
+    application.settings = config.parse(options.config_file)
+    application.settings['application_data_directory'] = options.application_data_directory
+    application.settings['logfile_name'] = output_file
 
     if len(args) == 1:
         if args[0] == 'start':
@@ -42,10 +72,11 @@ if __name__ == '__main__':
         elif args[0] == 'restart':
             application.restart()
         else:
-            print "Unknown command"
+            print 'Unknown command'
             sys.exit(2)
         
         sys.exit(0)
     else:
-        print parser.get_usage()
-        sys.exit(2)
+        application.run()
+        #print parser.get_usage()
+        #sys.exit(2)

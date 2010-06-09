@@ -9,5 +9,7 @@ cassandra_port: 9160
 
 # List of paths (files and directories) to monitor
 paths:
-    - /var/log/:
-        recursive: True
+    - name: ~/coding/cassandra/access.log
+      recursive: False
+    - name: /var/log/testing/
+      recurisve: True

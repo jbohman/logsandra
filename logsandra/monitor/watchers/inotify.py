@@ -9,8 +9,10 @@ class EventHandler(pyinotify.ProcessEvent):
 
 class InotifyWatcher(object):
 
-    def __init__(self, settings, entities, callback):
-        self.settings = settings
+    def __init__(self, entities, callback, update_freq=0, rescan_freq=20):
+        self.update_freq = update_freq
+        self.rescan_freq = rescan_freq
+
         self.entities = entities
         self.callback = lambda x: callback(x.pathname)
         self.wm = pyinotify.WatchManager()
@@ -18,7 +20,7 @@ class InotifyWatcher(object):
         pyinotify.log.setLevel(50)
 
     def loop(self):
-        notifier = pyinotify.Notifier(self.wm, EventHandler(callback=self.callback), self.settings['freq'])
+        notifier = pyinotify.Notifier(self.wm, EventHandler(callback=self.callback), self.update_freq)
         for entity in self.entities:
             self.wm.add_watch(entity['name'], pyinotify.IN_MODIFY, rec=entity['recursive'])
 
