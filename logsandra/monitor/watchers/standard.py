@@ -13,8 +13,8 @@ class StandardWatcher(object):
 
         self.files = {}
 
-        for filename in self._find_files_generator():
-            self.files[filename] = self._mtime(filename)
+        for filename, entity in self._find_files_generator():
+            self.files[filename] = {'mtime': self._mtime(filename), 'format': entity['format']}
 
         self._last_rescan_time = time.time()
 
@@ -25,11 +25,11 @@ class StandardWatcher(object):
                 self._last_rescan_time = self._rescan()
 
             reference_time = time.time()
-            for filename, mtime in self.files.iteritems():
+            for filename, data in self.files.iteritems():
                 new_mtime = self._mtime(filename)
-                if new_mtime > mtime:
-                    self.files[filename] = new_mtime
-                    self.callback(filename)
+                if new_mtime > data['mtime']:
+                    self.files[filename]['mtime'] = new_mtime
+                    self.callback(filename, {'format': self.files[filename]['format']})
 
             if self.update_freq > 0:
                 current_time = time.time()
@@ -46,25 +46,25 @@ class StandardWatcher(object):
                         if path[2]:
                             for filename in path[2]:
                                 filename = os.path.join(os.path.abspath(path[0]), filename)
-                                yield filename
+                                yield filename, entity
                 else:
                     for filename in os.listdir(entity['name']):
                         filename = os.path.abspath(entity['name']) + '/' + filename
                         if os.path.isfile(filename):
-                            yield filename
+                            yield filename, entity
             # Is file
             else:
                 if os.path.exists(os.path.expanduser(entity['name'])):
                     filename = os.path.abspath(os.path.expanduser(entity['name']))
-                    yield filename
+                    yield filename, entity
                 else:
-                    raise AttributeError('Invalid path, cannot monitor it')
+                    raise Error('Invalid path, cannot monitor it')
 
     def _rescan(self):
         tempfiles = {}
-        for filename in self._find_files_generator():
+        for filename, entity in self._find_files_generator():
             if filename not in self.files:
-                self.files[filename] = self._mtime(filename)
+                self.files[filename] = {'mtime': self._mtime(filename), 'format': entity['format']}
             tempfiles[filename] = 0
 
         result = set(self.files).difference(set(tempfiles)) 

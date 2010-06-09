@@ -11,5 +11,4 @@ cassandra_port: 9160
 paths:
     - name: ~/coding/cassandra/access.log
       recursive: False
-    - name: /var/log/testing/
-      recurisve: True
+      format: "%h %l %u %t %r %s %O %{Referer}i %{User-Agent}i"

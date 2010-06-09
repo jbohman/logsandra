@@ -9,14 +9,17 @@ from optparse import OptionParser
 #except ImportError:
 from watchers.standard import StandardWatcher as Watcher
 
+from parsers.clf import ClfParser
+
 
 class Reader(object):
 
     def __init__(self, tail=False):
         self.tail = tail
         self.seek_data = {}
+        self.parser = {}
 
-    def callback(self, filename):
+    def callback(self, filename, data):
         if os.path.basename(filename).startswith('.'):
             return False
 
@@ -29,7 +32,14 @@ class Reader(object):
                     file_handler.seek(0, os.SEEK_END)
 
             for line in file_handler:
-                print line.strip()
+                line = line.strip()
+
+                if filename not in self.parser:
+                    self.parser[filename] = ClfParser(data['format'])
+
+                result = self.parser[filename].parse_line(line)
+
+                print result
 
             self.seek_data[filename] = file_handler.tell()
             file_handler.close()
