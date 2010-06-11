@@ -1,23 +1,46 @@
-#!/usr/bin/env python
-import sys
+# Global imports
 import os.path
-from optparse import OptionParser
+import time
+import uuid
+import struct
+import pycassa
 
-# Try to import pyinotify handler, else standard handler
-#try:
-#    from watchers.inotify import InotifyWatcher as Watcher
-#except ImportError:
-from watchers.standard import StandardWatcher as Watcher
 
+from watchers import Watcher
 from parsers.clf import ClfParser
 
 
-class Reader(object):
+class Monitor(object):
 
-    def __init__(self, tail=False):
+    def __init__(self, settings, tail=False):
+        self.settings = settings
+
         self.tail = tail
         self.seek_data = {}
         self.parser = {}
+
+    def run(self):
+        # Connect to cassandra
+        connect_string = '%s:%s' % (self.settings['cassandra_address'], self.settings['cassandra_port'])
+        self.client = pycassa.connect([connect_string], timeout=self.settings['cassandra_timeout'])
+
+        # Column families
+        self.entries = pycassa.ColumnFamily(self.client, 'logsandra', 'entries')
+        self.by_date = pycassa.ColumnFamily(self.client, 'logsandra', 'by_date')
+        self.by_date_data = pycassa.ColumnFamily(self.client, 'logsandra', 'by_date_data')
+
+        # Struct
+        self.long_struct = struct.Struct('l')
+
+        # Start watcher (inf loop)
+        self.watcher = Watcher(self.settings['paths'], self.callback)
+        self.watcher.loop()
+
+    def _to_long(self, data):
+        return self.long_struct.pack(data)
+
+    def _from_long(self, data):
+        return self.long_struct.unpack(data)
 
     def callback(self, filename, data):
         if os.path.basename(filename).startswith('.'):
@@ -39,6 +62,14 @@ class Reader(object):
 
                 result = self.parser[filename].parse_line(line)
 
+                # TODO: Should move this to every individual parser
+                key = uuid.uuid4()
+                self.entries.insert(key.bytes, {'ident': self.settings['ident'], 'entry': line})
+
+                if 'status' in result:
+                    # TODO: is this really how pycassa should be used?
+                    self.by_date.insert(str(result['status']), {self._to_long(time.mktime(result['time'].timetuple())): str(key)})
+
                 print result
 
             self.seek_data[filename] = file_handler.tell()
@@ -46,25 +77,3 @@ class Reader(object):
 
         except IOError:
             pass
-
-# Run it
-if __name__ == '__main__':
-    usage = 'usage: %prog [options] path [path ...]'
-    parser = OptionParser(usage=usage)
-    parser.add_option('-r', '--rescan-freq', dest='rescan_freq', help='rescan frequency in seconds', metavar='SECONDS', default=20)
-    parser.add_option('-u', '--update-freq', dest='update_freq', help='update frequnecy in seconds', metavar='SECONDS', default=10)
-    parser.add_option('-t', '--tail', action='store_true', dest='tail', help='start reading from the bottom only', default=False)
-    parser.add_option('--recursive', action='store_true', dest='recursive')
-    (options, args) = parser.parse_args()
- 
-    if not args:
-        print "Need atleast one path (file or directory) to monitor, see --help"
-        sys.exit(1)
-
-    entities = []
-    for arg in args:
-        entities.append({'name': arg, 'recursive': options.recursive})
-
-    r = Reader(options.tail)
-    w = Watcher(entities, r.callback, update_freq=options.update_freq, rescan_freq=options.rescan_freq)
-    w.loop()

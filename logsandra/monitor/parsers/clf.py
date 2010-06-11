@@ -32,20 +32,20 @@ class ClfParser(object):
 
     def parse_line(self, line):
         match = self.pattern.match(line)
-        res = match.groupdict()
+        result = match.groupdict()
 
-        if 'user' in res and res['user'] == '-':
-            res['user'] = None
+        if 'user' in result and result['user'] == '-':
+            result['user'] = None
 
-        if 'size' in res and res['size'] == '-':
-            res['size'] = None
+        if 'size' in result and result['size'] == '-':
+            result['size'] = None
 
-        if 'size_with_headers' in res and res['size_with_headers'] == '-':
-            res['size_with_headers'] = None
+        if 'size_with_headers' in result and result['size_with_headers'] == '-':
+            result['size_with_headers'] = None
 
-        if 'referer' in res and res['referer'] == '-':
-            res['referer'] = None
+        if 'referer' in result and result['referer'] == '-':
+            result['referer'] = None
 
-        res['time'] = dateutil.parser.parse(res['time'], fuzzy=True)
+        result['time'] = dateutil.parser.parse(result['time'], fuzzy=True)
 
-        return res
+        return result

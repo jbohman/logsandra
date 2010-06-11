@@ -3,4 +3,21 @@ Logsandra
 Work in progress!
 
 Requirements:
+  - Cassandra + Thrift
+  - pycassa
   - PyYaml
+  - Python Dateutils
+
+
+Current keyspace config (for testing purposes only):
+
+<Keyspaces>
+    <Keyspace Name="logsandra">
+        <ColumnFamily Name="entries" CompareWith="BytesType" />
+        <ColumnFamily Name="by_date" CompareWith="LongType" />
+        <ColumnFamily Name="by_date_data" CompareWith="LongType" />
+        <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
+        <ReplicationFactor>1</ReplicationFactor>
+        <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
+    </Keyspace>
+</Keyspaces>

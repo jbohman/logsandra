@@ -16,9 +16,9 @@ from utils.daemon import Daemon
 class Application(Daemon):
 
     def monitor(self):
-        reader = monitor.Reader(False)
-        watcher = monitor.Watcher(self.settings['paths'], reader.callback)
-        watcher.loop()
+        print 'Starting monitor service...'
+        m = monitor.Monitor(self.settings, False)
+        m.run()
 
     # TODO: setup application here, monitor + pylon webservice
     def run(self):
@@ -35,6 +35,8 @@ class Application(Daemon):
         self.monitor_process = multiprocessing.Process(target=self.monitor)
         self.monitor_process.start()
 
+        print 'Starting web service...'
+        
         self.running = True
         while self.running:
             time.sleep(10)

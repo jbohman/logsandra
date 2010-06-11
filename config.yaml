@@ -1,3 +1,6 @@
+# Ident
+ident: 'Logsandra Example Server 1'
+
 # Webservice
 webservice_enabled: True
 webservice_address: localhost
@@ -6,6 +9,7 @@ webservice_port: 8080
 # Cassandra cluster to connect to 
 cassandra_address: localhost
 cassandra_port: 9160
+cassandra_timeout: 5
 
 # List of paths (files and directories) to monitor
 paths:
