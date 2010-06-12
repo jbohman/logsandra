@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Global imports
 import sys
 import os
@@ -6,17 +7,17 @@ import time
 import multiprocessing
 import logging
 
+from cherrypy import wsgiserver
+from paste.deploy import loadapp
+
 # Local imports
-import monitor
-import config
-import utils
-from utils.daemon import Daemon
+from logsandra import monitor, config, utils
+from logsandra.utils.daemon import Daemon
 
 
 class Application(Daemon):
 
     def monitor(self):
-        print 'Starting monitor service...'
         m = monitor.Monitor(self.settings, False)
         m.run()
 
@@ -32,14 +33,19 @@ class Application(Daemon):
             sys.exit(1)
 
         # Start monitor process
+        print 'Starting monitor service...'
         self.monitor_process = multiprocessing.Process(target=self.monitor)
         self.monitor_process.start()
 
-        print 'Starting web service...'
-        
-        self.running = True
-        while self.running:
-            time.sleep(10)
+        # Start web process
+        print 'Starting web service...' 
+        wsgi_app = loadapp('config:/home/tote/coding/cassandra/logsandra/development.ini')
+        d = wsgiserver.WSGIPathInfoDispatcher({'/': wsgi_app})
+        server = wsgiserver.CherryPyWSGIServer((self.settings['webservice_address'], int(self.settings['webservice_port'])), d)
+        try:
+            server.start()
+        except KeyboardInterrupt:
+            server.stop()
 
 
 if __name__ == '__main__':

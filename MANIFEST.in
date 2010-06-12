@@ -1,0 +1,3 @@
+include logsandra/config/deployment.ini_tmpl
+recursive-include logsandra/public *
+recursive-include logsandra/templates *

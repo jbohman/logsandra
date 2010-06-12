@@ -4,7 +4,7 @@ ident: 'Logsandra Example Server 1'
 # Webservice
 webservice_enabled: True
 webservice_address: localhost
-webservice_port: 8080
+webservice_port: 5000
 
 # Cassandra cluster to connect to 
 cassandra_address: localhost
