@@ -1,0 +1,13 @@
+{%- extends "base.html" %}
+
+{% block content %}
+
+<pre>
+{% for entry in c.entries %}
+    {{ entry }}
+{% else %}
+    No entries found.
+{% endfor %}
+</pre>
+
+{% endblock %}

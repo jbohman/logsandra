@@ -30,7 +30,7 @@ class Monitor(object):
         self.by_date_data = pycassa.ColumnFamily(self.client, 'logsandra', 'by_date_data')
 
         # Struct
-        self.long_struct = struct.Struct('l')
+        self.long_struct = struct.Struct('>q')
 
         # Start watcher (inf loop)
         self.watcher = Watcher(self.settings['paths'], self.callback)
@@ -68,7 +68,8 @@ class Monitor(object):
 
                 if 'status' in result:
                     # TODO: is this really how pycassa should be used?
-                    self.by_date.insert(str(result['status']), {self._to_long(time.mktime(result['time'].timetuple())): str(key)})
+                    self.by_date.insert(str(result['status']), {self._to_long(int(time.mktime(result['time'].timetuple()))): str(key)})
+                    self.by_date_data.insert(str(result['status']), {self._to_long(int(time.mktime(result['time'].timetuple()))): str(line)})
 
                 print result
 
