@@ -11,9 +11,9 @@ from cherrypy import wsgiserver
 from paste.deploy import loadapp
 
 # Local imports
-from logsandra import monitor, config, utils
+from logsandra import utils
 from logsandra.utils.daemon import Daemon
-
+from logsandra.monitor import config, monitor
 
 class Application(Daemon):
 
@@ -25,7 +25,7 @@ class Application(Daemon):
     def run(self):
 
         # Setup logging
-        logging.basicConfig(filename=self.settings['logfile_name'], level=logging.DEBUG)
+        logging.basicConfig(filename=self.settings['logfile'], level=logging.DEBUG)
 
         # Test to see if settings is present
         if not hasattr(self, 'settings'):
@@ -65,12 +65,12 @@ if __name__ == '__main__':
     if not os.path.isdir(options.application_data_directory):
         os.makedirs(options.application_data_directory)
 
-    output_file = os.path.join(options.application_data_directory, 'logsandra.log')
+    logfile = os.path.join(options.application_data_directory, 'logsandra.log')
 
-    application = Application(options.pid_file, stdout=output_file, stderr=output_file)
+    application = Application(options.pid_file, stdout=logfile, stderr=logfile)
     application.settings = config.parse(options.config_file)
     application.settings['application_data_directory'] = options.application_data_directory
-    application.settings['logfile_name'] = output_file
+    application.settings['logfile'] = logfile
 
     if len(args) == 1:
         if args[0] == 'start':
