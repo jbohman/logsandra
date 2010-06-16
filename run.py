@@ -39,7 +39,7 @@ class Application(Daemon):
 
         # Start web process
         print 'Starting web service...' 
-        wsgi_app = loadapp('config:/home/tote/coding/cassandra/logsandra/development.ini')
+        wsgi_app = loadapp('config:development.ini', relative_to='.')
         d = wsgiserver.WSGIPathInfoDispatcher({'/': wsgi_app})
         server = wsgiserver.CherryPyWSGIServer((self.settings['webservice_address'], int(self.settings['webservice_port'])), d)
         try:
