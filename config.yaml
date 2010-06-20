@@ -1,10 +1,11 @@
 # Ident
-ident: 'Logsandra Example Server 1'
+ident: 'Logsandra Server 1'
 
 # Webservice
 webservice_enabled: True
 webservice_address: "0.0.0.0"
 webservice_port: 5000
+webservice_config: "development.ini"
 
 # Cassandra cluster to connect to 
 cassandra_address: localhost

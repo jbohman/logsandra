@@ -15,6 +15,11 @@ setup(
     install_requires=[
         "Pylons>=1.0",
         "Jinja2",
+        "PyYAML",
+        "Pycassa",
+        "python-dateutil",
+        "CherryPy>=3.1",
+        "Thrift"
     ],
     setup_requires=["PasteScript>=1.6.3"],
     packages=find_packages(exclude=['ez_setup']),
@@ -24,6 +29,7 @@ setup(
     #message_extractors={'logsandra': [
     #        ('**.py', 'python', None),
     #        ('public/**', 'ignore', None)]},
+    scripts=['logsandra-httpd.py', 'logsandra-monitord.py'],
     zip_safe=False,
     paster_plugins=['PasteScript', 'Pylons'],
     entry_points="""

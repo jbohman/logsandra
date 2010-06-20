@@ -1,5 +1,7 @@
 MANIFEST.in
 README
+logsandra-httpd.py
+logsandra-monitord.py
 setup.cfg
 setup.py
 logsandra/__init__.py
@@ -27,6 +29,7 @@ logsandra/lib/base.py
 logsandra/lib/helpers.py
 logsandra/model/__init__.py
 logsandra/monitor/__init__.py
+logsandra/monitor/config.py
 logsandra/monitor/monitor.py
 logsandra/monitor/parsers/__init__.py
 logsandra/monitor/parsers/clf.py

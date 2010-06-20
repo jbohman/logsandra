@@ -4,15 +4,17 @@ import time
 import uuid
 import struct
 import pycassa
+import logging
 
-
-from watchers import Watcher
-from parsers.clf import ClfParser
+# Local imports
+from logsandra.monitor.watchers import Watcher
+from logsandra.monitor.parsers.clf import ClfParser
 
 
 class Monitor(object):
 
     def __init__(self, settings, tail=False):
+        self.logger = logging.getLogger('logsandra.monitord')
         self.settings = settings
 
         self.tail = tail
@@ -33,6 +35,7 @@ class Monitor(object):
         self.long_struct = struct.Struct('>q')
 
         # Start watcher (inf loop)
+        self.logger.debug('Starting watcher')
         self.watcher = Watcher(self.settings['paths'], self.callback)
         self.watcher.loop()
 
@@ -45,6 +48,8 @@ class Monitor(object):
     def callback(self, filename, data):
         if os.path.basename(filename).startswith('.'):
             return False
+
+        self.logger.debug('A change occurred in file %s with data %s' % (filename, data))
 
         try:
             file_handler = open(filename, 'rb')
@@ -71,7 +76,7 @@ class Monitor(object):
                     self.by_date.insert(str(result['status']), {self._to_long(int(time.mktime(result['time'].timetuple()))): str(key)})
                     self.by_date_data.insert(str(result['status']), {self._to_long(int(time.mktime(result['time'].timetuple()))): str(line)})
 
-                print result
+                self.logger.debug('Parsed line: %s' % line)
 
             self.seek_data[filename] = file_handler.tell()
             file_handler.close()
