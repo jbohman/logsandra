@@ -40,7 +40,7 @@ if __name__ == '__main__':
         os.makedirs(options.application_data_directory)
 
     logfile = os.path.join(options.application_data_directory, 'logsandra.log')
-    logging.basicConfig(filename=logfile, level=logging.DEBUG, format="%(asctime)s,%(msecs)03d %(levelname)-5.5s [%(name)s] [%(threadName)s] %(message)s")
+    logging.basicConfig(filename=logfile, level=logging.DEBUG, format="%(asctime)s %(levelname)-5.5s [%(name)s] [%(threadName)s] %(message)s")
 
     application = Application(options.pid_file, working_directory=options.working_directory, stdout=logfile, stderr=logfile)
     application.settings = options
