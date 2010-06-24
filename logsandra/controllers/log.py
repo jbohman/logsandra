@@ -3,15 +3,16 @@ import datetime
 import time
 import pycassa
 import struct
-from cassandra.ttypes import NotFoundException
 
 from pylons import request, response, session, tmpl_context as c, url
 from pylons.controllers.util import abort, redirect
 
 from logsandra.lib.base import BaseController, render
 from logsandra import config
+from logsandra.utils.model import Cassandra
 
 log = logging.getLogger(__name__)
+
 
 class LogController(BaseController):
 
@@ -22,6 +23,15 @@ class LogController(BaseController):
         date_from = request.GET['date_from']
         date_to = request.GET['date_to']
         status = request.GET['status']
+        search_keyword = request.GET['search_keyword']
+
+        keyword = status
+        if search_keyword:
+            keyword = search_keyword
+
+        current_next = None
+        if 'next' in request.GET:
+            current_next = long(request.GET['next'])
 
         if date_from and date_to:
             try:
@@ -34,28 +44,21 @@ class LogController(BaseController):
             date_to = None
         
         # TODO: Move this to a final that could be used by other controllers and make sure it uses the config file
-        connect_string = '%s:%s' % ('localhost', 9160)
-        client = pycassa.connect([connect_string], timeout=5)
+        client = Cassandra('', 'localhost', 9160, 5)
 
-        # Column families
-        entries = pycassa.ColumnFamily(client, 'logsandra', 'entries')
-        by_date = pycassa.ColumnFamily(client, 'logsandra', 'by_date')
-        by_date_data = pycassa.ColumnFamily(client, 'logsandra', 'by_date_data')
+        if current_next:
+            entries, next = client.get_entries_by_keyword(keyword, date_from, date_to, action_next=current_next) 
+        else:
+            entries, next = client.get_entries_by_keyword(keyword, date_from, date_to) 
 
-        long_struct = struct.Struct('>q')
+        c.entries = entries
 
-        c.entries = []
-        try:
-            if date_from and date_to:
-                result = by_date_data.get(str(status), column_start=long_struct.pack(int(time.mktime(date_from.timetuple()))), 
-                            column_finish=long_struct.pack(int(time.mktime(date_to.timetuple()))))
-            else:
-                result = by_date_data.get(str(status))
-
-            for elem in result.itervalues():
-                c.entries.append(elem.strip())
-        except NotFoundException:
-            pass
+        if next:
+            c.next_url = url(controller='log', action='view',
+                    search_keyword=request.GET['search_keyword'],
+                    status=request.GET['status'],
+                    date_from=request.GET['date_from'],
+                    date_to=request.GET['date_to'], next=next) 
 
         return render('/log_view.html')
 

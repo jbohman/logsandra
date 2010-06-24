@@ -14,7 +14,7 @@ class StandardWatcher(object):
         self.files = {}
 
         for filename, entity in self._find_files_generator():
-            self.files[filename] = {'mtime': self._mtime(filename), 'format': entity['format']}
+            self.files[filename] = {'mtime': self._mtime(filename), 'data': entity}
 
         self._last_rescan_time = time.time()
 
@@ -29,7 +29,9 @@ class StandardWatcher(object):
                 new_mtime = self._mtime(filename)
                 if new_mtime > data['mtime']:
                     self.files[filename]['mtime'] = new_mtime
-                    self.callback(filename, {'format': self.files[filename]['format']})
+                    data = self.files[filename]['data']
+                    data['source'] = filename
+                    self.callback(filename, data)
 
             if self.update_freq > 0:
                 current_time = time.time()
@@ -64,7 +66,7 @@ class StandardWatcher(object):
         tempfiles = {}
         for filename, entity in self._find_files_generator():
             if filename not in self.files:
-                self.files[filename] = {'mtime': self._mtime(filename), 'format': entity['format']}
+                self.files[filename] = {'mtime': self._mtime(filename), 'data': entity}
             tempfiles[filename] = 0
 
         result = set(self.files).difference(set(tempfiles)) 

@@ -5,10 +5,10 @@ ident: 'Logsandra Server 1'
 webservice_enabled: True
 webservice_address: "0.0.0.0"
 webservice_port: 5000
-webservice_config: "development.ini"
+webservice_config: 'development.ini'
 
 # Cassandra cluster to connect to 
-cassandra_address: localhost
+cassandra_address: 'localhost'
 cassandra_port: 9160
 cassandra_timeout: 5
 
@@ -16,4 +16,5 @@ cassandra_timeout: 5
 paths:
     - name: ~/coding/cassandra/access.log
       recursive: False
-      format: "%h %l %u %t %r %s %O %{Referer}i %{User-Agent}i"
+      parser: 'clf'
+      clf_format: '%h %l %u %t %r %s %O %{Referer}i %{User-Agent}i'

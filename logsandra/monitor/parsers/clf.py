@@ -21,31 +21,58 @@ clf = {
 
 class ClfParser(object):
 
-    def __init__(self, format):
-        self.format = format
+    def __init__(self, client):
+        self.client = client
 
+    def parse(self, line, data):
+        print data
         parts = []
-        for element in self.format.split(' '):
+        for element in data['clf_format'].split(' '):
             parts.append(clf[element])
 
-        self.pattern = re.compile(r'\s+'.join(parts)+r'\s*\Z')
-
-    def parse_line(self, line):
-        match = self.pattern.match(line)
+        # TODO: optimize by storing compiled regex?
+        pattern = re.compile(r'\s+'.join(parts)+r'\s*\Z')
+        match = pattern.match(line)
         result = match.groupdict()
 
-        if 'user' in result and result['user'] == '-':
-            result['user'] = None
+        keywords = []
 
-        if 'size' in result and result['size'] == '-':
-            result['size'] = None
+        if 'user' in result and result['user'] != '-':
+            keywords.append('user:%s' % result['user'])
+            keywords.append(result['user'])
 
-        if 'size_with_headers' in result and result['size_with_headers'] == '-':
-            result['size_with_headers'] = None
+        if 'user_agent' in result and result['user_agent'] != '-':
+            keywords.append('user_agent:%s' % result['user_agent'])
+            keywords.append(result['user_agent'])
+           
+        if 'referer' in result and result['referer'] != '-':
+            keywords.append('referer:%s' % result['referer'])
+            keywords.append(result['referer'])
 
-        if 'referer' in result and result['referer'] == '-':
-            result['referer'] = None
+        if 'request' in result and result['request'] != '-':
+            request_parts = result['request'].split(' ')
+            keywords.extend(request_parts)
+            keywords.append('request_type:%s' % request_parts[0])
+            keywords.append('request_url:%s' % request_parts[1])
+            keywords.append('request:%s' % result['request'])
+            keywords.append(result['request'])
 
-        result['time'] = dateutil.parser.parse(result['time'], fuzzy=True)
+        if 'status' in result and result['status'] != '-':
+            keywords.append('status_code:%s' % result['status'])
+            keywords.append(result['status'])
 
-        return result
+        if 'host' in result and result['host'] != '-':
+            keywords.append('host:%s' % result['host'])
+            keywords.append(result['host'])
+
+        if 'port' in result and result['port'] != '-':
+            keywords.append('port:%s' % result['port'])
+            keywords.append(result['port'])
+
+        if 'server' in result and result['server'] != '-':
+            keywords.append('server:%s' % result['server'])
+            keywords.append(result['server'])
+
+        date = dateutil.parser.parse(result['time'], fuzzy=True).replace(tzinfo=None)
+
+        return self.client.add_entry(date, line, data['source'], keywords)

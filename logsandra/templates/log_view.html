@@ -2,12 +2,16 @@
 
 {% block content %}
 
-<pre>
+{% if c.next_url %}
+<a href="{{ c.next_url }}">Next</a>
+{% endif %}
+
 {% for entry in c.entries %}
-    {{ entry }}
+    <pre style="white-space: normal;">
+    {{ entry['entry'] }}<br />
+    <small><span style="color: #bbb;">date </span>{{ entry['date'] }} <span style="color: #bbb;">ident </span>{{ entry['ident'] }} <span style="color: #bbb;">source </span>{{ entry['source'] }}</small></pre>
 {% else %}
     No entries found.
 {% endfor %}
-</pre>
 
 {% endblock %}
