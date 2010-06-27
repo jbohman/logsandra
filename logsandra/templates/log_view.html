@@ -2,9 +2,18 @@
 
 {% block content %}
 
-{% if c.next_url %}
-<a href="{{ c.next_url }}">Next</a>
+{% if c.entries %}
+    Displaying {{ c.entries|length }} entries
+
+    {% if c.prev_url %}
+        <a href="{{ c.prev_url }}">Prev</a>
+    {% endif %}
+
+    {% if c.next_url %}
+        <a href="{{ c.next_url }}">Next</a>
+    {% endif %}
 {% endif %}
+
 
 {% for entry in c.entries %}
     <pre style="white-space: normal;">

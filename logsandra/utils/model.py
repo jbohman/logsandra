@@ -44,89 +44,68 @@ class Cassandra(object):
 
         return True
 
-    def get_entries_by_keyword(self, keyword, column_start=None, column_finish=None, column_count=30, action_next=None):
-        if action_next:
-            column_start = long_struct.pack(action_next)
-        elif column_start:
-            column_start = to_long(column_start)
-
-        try:
-            if column_start and not column_finish:
-                result = self.cf_by_date.get(str(keyword), column_count=column_count, column_start=column_start)
-            elif column_start and column_finish:
-                result = self.cf_by_date.get(str(keyword), column_count=column_count, column_start=column_start, column_finish=to_long(column_finish, 0))
-            else:
-                result = self.cf_by_date.get(str(keyword), column_count=column_count)
-        except NotFoundException:
-            return [], None
-
-        try:
-            entries = self.cf_entries.multiget(result.values())
-        except NotFoundException:
-            return [], None
-
-        return_value = []
-        return_next = None
-        for k, v in result.items():
-            if v in entries:
-                return_value.append(entries[v])
-                return_next = k
-        
-        return return_value, long_struct.unpack(return_next)[0] + 1
-
-
-    """
-    def get_entries_by_keyword(self, keyword, column_start=None, column_finish=None, column_count=10, action_next=None, action_prev=None, prev=[]):
+    def get_entries_by_keyword(self, keyword, column_start='', column_finish='', column_count=30, action_next=None, action_prev=None):
         if action_next and action_prev:
             raise AttributeError('action_next and action_prev is mutually exclusive')
 
         column_reversed = False
-        if not column_start and not column_finish:
-            if action_next:
-                column_start = long_struct.pack(action_next)
 
-            if action_prev:
-                column_start = long_struct.pack(action_prev[-2])
+        if column_start:
+            column_start = to_long(column_start, 0)
+
+        if column_finish:
+            column_finish = to_long(column_finish, 0)
+
+        if action_next:
+            column_start = long_struct.pack(action_next)
+
+        if action_prev:
+            if column_start:
+                column_finish = column_start
+            column_start = long_struct.pack(action_prev)
+            column_reversed = True
 
         try:
-            if column_start and not column_finish:
-                result = self.cf_by_date.get(str(keyword),
-                        column_count=column_count,
-                        column_reversed=column_reversed,
-                        column_start=column_start)
-            elif column_start and column_finish:
-                result = self.cf_by_date.get(str(keyword),
-                        column_count=column_count,
-                        column_reversed=column_reversed,
-                        column_start=column_start,
-                        column_finish=column_finish)
-            else:
-                result = self.cf_by_date.get(str(keyword),
-                        column_count=column_count,
-                        column_reversed=column_reversed)
+            result = self.cf_by_date.get(str(keyword),
+                    column_reversed=column_reversed, column_count=column_count+1,
+                    column_start=column_start, column_finish=column_finish)
         except NotFoundException:
-            return OrderedDict(), None
+            return [], None, None
 
         try:
             entries = self.cf_entries.multiget(result.values())
         except NotFoundException:
-            return OrderedDict(), None
+            return [], None, None
 
-        return_value = OrderedDict()
+        loop = result.items()
+        if column_reversed:
+            loop = reversed(loop)
+
+        values = []
+        keys = []
+        for k, v in loop:
+            if v in entries:
+                values.append(entries[v])
+                keys.append(k)
+
         return_next = None
         return_prev = None
-        for k, v in result.items():
-            if v in entries:
-                if not return_prev:
-                    return_prev = k
-                return_value[v] = entries[v]
-                return_next = k
-
-        if action_prev:
-            prev.pop()
+        if len(keys) == column_count+1:
+            if action_prev:
+                values = values[1:]
+                return_next = long_struct.unpack(keys[-1])[0] + 1
+                return_prev = long_struct.unpack(keys[1])[0] - 1
+            elif action_next:
+                values = values[0:-1]
+                return_next = long_struct.unpack(keys[-2])[0] + 1
+                return_prev = long_struct.unpack(keys[0])[0] - 1
+            else:
+                return_next = long_struct.unpack(keys[-2])[0] + 1
+                values = values[0:-1]
         else:
-            prev.append(long_struct.unpack(return_prev)[0])
+            if action_prev:
+                return_next = long_struct.unpack(keys[-1])[0] + 1
+            elif action_next:
+                return_prev = long_struct.unpack(keys[0])[0] - 1
 
-        return return_value, (long_struct.unpack(return_next)[0] + 1), prev
-    """
-
+        return values, return_next, return_prev
