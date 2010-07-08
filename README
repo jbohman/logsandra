@@ -1,23 +1,50 @@
 Logsandra
-
-Work in progress!
-
-Requirements:
-  - Cassandra + Thrift
-  - pycassa
-  - PyYaml
-  - Python Dateutils
+=========
+Logsandra is a log management application written in Python and using Cassandra as back-end.
 
 
-Current keyspace config (for testing purposes only):
+Requirements
+------------
+Cassandra 0.6 or higher and the following python requirements:
 
-<Keyspaces>
-    <Keyspace Name="logsandra">
-        <ColumnFamily Name="entries" CompareWith="BytesType" />
-        <ColumnFamily Name="by_date" CompareWith="LongType" />
-        <ColumnFamily Name="by_date_data" CompareWith="LongType" />
-        <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
-        <ReplicationFactor>1</ReplicationFactor>
-        <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
-    </Keyspace>
-</Keyspaces>
+    * Pylons >= 1.0
+    * Jinja2
+    * PyYAML
+    * Pycassa
+    * python-dateutil
+    * CherryPy >= 3.1
+    * Thrift
+    * ordereddict
+    * Cassandra
+
+The Cassandra bindings are not automatically installed.
+
+
+Installation
+------------
+To install Logsandra you run this command:
+    
+    python setup.py install
+
+It is also possible to directly start using logsandra-httpd.py and logsandra-monitord.py without installing Logsandra to your site-package directory if all 
+required modules are all ready installed.
+
+The current keyspace configuration for Cassandra needed for Logsandra to work is:
+
+    <Keyspaces>
+        <Keyspace Name="logsandra">
+            <ColumnFamily Name="entries" CompareWith="BytesType" />
+            <ColumnFamily Name="by_date" CompareWith="LongType" />
+            <ColumnFamily Name="by_date_data" CompareWith="LongType" />
+            <ColumnFamily Name="categories" CompareWith="UTF8Type" />
+          <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
+          <ReplicationFactor>1</ReplicationFactor>
+          <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
+        </Keyspace>
+    </Keyspaces>
+
+The keyspace definition might be obsolete in future releases of Cassandra (0.7+) where you can programmatically create and drop keyspaces.
+
+Usage
+-----
+

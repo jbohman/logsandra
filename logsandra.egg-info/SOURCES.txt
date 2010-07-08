@@ -47,3 +47,4 @@ logsandra/tests/functional/__init__.py
 logsandra/tests/functional/test_log.py
 logsandra/utils/__init__.py
 logsandra/utils/daemon.py
+logsandra/utils/model.py
