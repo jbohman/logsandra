@@ -2,31 +2,28 @@
 """
 Logsandra monitor daemon
 """
-# Global imports
 import sys
 import os
 import optparse
 import logging
 
-# Local imports
 from logsandra import utils
 from logsandra.utils.daemon import Daemon
-from logsandra.monitor import config, monitor
+from logsandra.utils import config
+from logsandra.monitor import monitor
 
 class Application(Daemon):
 
     def run(self):
-        logger = logging.getLogger('logsandra.monitord')
-        settings = config.parse(self.settings.config_file)
-        m = monitor.Monitor(settings, False)
-        logger.debug('Starting monitor daemon')
+        self.logger.debug('Starting monitor daemon')
+        m = monitor.Monitor(self.config, False)
         m.run()
 
 
 if __name__ == '__main__':
 
     default_working_directory = os.curdir
-    default_config_file = os.path.join(default_working_directory, 'config.yaml')
+    default_config_file = os.path.join(default_working_directory, 'logsandra.yaml')
 
     usage = 'usage: %prog [options] start|stop|restart'
     parser = optparse.OptionParser(usage=usage)
@@ -41,9 +38,11 @@ if __name__ == '__main__':
 
     logfile = os.path.join(options.application_data_directory, 'logsandra.log')
     logging.basicConfig(filename=logfile, level=logging.DEBUG, format="%(asctime)s %(levelname)-5.5s [%(name)s] [%(threadName)s] %(message)s")
+    logger = logging.getLogger('logsandra.monitord')
 
     application = Application(options.pid_file, working_directory=options.working_directory, stdout=logfile, stderr=logfile)
-    application.settings = options
+    application.config = config.parse(options.config_file)
+    application.logger = logger
 
     if len(args) == 1:
         if args[0] == 'start':

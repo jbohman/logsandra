@@ -2,15 +2,14 @@
 ident: 'Logsandra Server 1'
 
 # Web service
-web_enabled: True
-web_address: "0.0.0.0"
-web_port: 5000
-web_config: 'development.ini'
+httpd_host: '0.0.0.0'
+httpd_port: '5000'
+httpd_config: 'development.ini'
 
 # Cassandra cluster to connect to 
-cassandra_address: 'localhost'
-cassandra_port: 9160
-cassandra_timeout: 5
+cassandra_host: 'localhost'
+cassandra_port: '9160'
+cassandra_timeout: '5'
 
 # List of paths (files and directories) to monitor
 paths:

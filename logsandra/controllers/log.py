@@ -57,6 +57,7 @@ class LogController(BaseController):
         # and make sure it uses the config file
         client = Cassandra('', 'localhost', 9160, 5)
 
+
         if current_next:
             entries, last, first = client.get_entries_by_keyword(keyword,
                     date_from, date_to, action_next=current_next)
