@@ -21,8 +21,8 @@ clf = {
 
 class ClfParser(object):
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, log_entries):
+        self.log_entries = log_entries
 
     def parse(self, line, data):
         print data
@@ -75,4 +75,4 @@ class ClfParser(object):
 
         date = dateutil.parser.parse(result['time'], fuzzy=True).replace(tzinfo=None)
 
-        return self.client.add_entry(date, line, data['source'], keywords)
+        return self.log_entries.add(date, line, data['source'], keywords)

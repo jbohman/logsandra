@@ -4,15 +4,13 @@ import time
 import pycassa
 import struct
 
-from pylons import request, response, session, tmpl_context as c, url
+from pylons import request, response, session, tmpl_context as c, url, config
 from pylons.controllers.util import abort, redirect
 
 from logsandra.lib.base import BaseController, render
-from logsandra import config
-from logsandra.utils.model import Cassandra
+from logsandra.model import LogEntry, CassandraClient
 
 log = logging.getLogger(__name__)
-
 
 class LogController(BaseController):
 
@@ -52,20 +50,18 @@ class LogController(BaseController):
                 redirect(url(controller='log', action='error'))
         else:
             date_to = ''
-        
-        # TODO: Move this to a final that could be used by other controllers
-        # and make sure it uses the config file
-        client = Cassandra('', 'localhost', 9160, 5)
-
+       
+        cassandra_client = CassandraClient(config['ident'], config['cassandra_host'], config['cassandra_port'], config['cassandra_timeout'])
+        log_entries = LogEntry(cassandra_client)
 
         if current_next:
-            entries, last, first = client.get_entries_by_keyword(keyword,
+            entries, last, first = log_entries.get_by_keyword(keyword,
                     date_from, date_to, action_next=current_next)
         elif current_prev:
-            entries, last, first = client.get_entries_by_keyword(keyword,
+            entries, last, first = log_entries.get_by_keyword(keyword,
                     date_from, date_to, action_prev=current_prev)
         else:
-            entries, last, first = client.get_entries_by_keyword(keyword,
+            entries, last, first = log_entries.get_by_keyword(keyword,
                     date_from, date_to) 
 
         c.entries = entries

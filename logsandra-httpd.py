@@ -18,7 +18,7 @@ class Application(Daemon):
 
     def run(self):
         wsgi_app = loadapp('config:%s' % self.config['httpd_config'], relative_to=self.config['httpd_working_directory'], global_conf={
-                'cassandra_address': self.config['cassandra_address'], 
+                'cassandra_host': self.config['cassandra_host'], 
                 'cassandra_port': self.config['cassandra_port'], 
                 'cassandra_timeout': self.config['cassandra_timeout'],
                 'ident': self.config['ident']})
@@ -70,6 +70,8 @@ if __name__ == '__main__':
     if len(args) == 1:
         if args[0] == 'start':
             application.start()
+        elif args[0] == 'start-fg':
+            application.run()
         elif args[0] == 'stop':
             application.stop()
         elif args[0] == 'restart':

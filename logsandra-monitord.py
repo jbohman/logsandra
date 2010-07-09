@@ -19,7 +19,6 @@ class Application(Daemon):
         m = monitor.Monitor(self.config, False)
         m.run()
 
-
 if __name__ == '__main__':
 
     default_working_directory = os.curdir
