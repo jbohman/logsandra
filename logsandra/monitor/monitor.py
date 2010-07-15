@@ -20,7 +20,9 @@ class Monitor(object):
         self.client = CassandraClient(self.settings['ident'], self.settings['cassandra_address'], self.settings['cassandra_port'], self.settings['cassandra_timeout'])
 
         self.tail = tail
-        self.seek_data = {}
+        self.seek_position = {}
+
+        # TODO: Automatically load parsers
         self.parsers = {'clf': ClfParser(LogEntry(self.client))}
 
     def run(self):
@@ -35,8 +37,8 @@ class Monitor(object):
         self.logger.debug('A change occurred in file %s with data %s' % (filename, data))
         try:
             file_handler = open(filename, 'rb')
-            if filename in self.seek_data:
-                file_handler.seek(self.seek_data[filename])
+            if filename in self.seek_position:
+                file_handler.seek(self.seek_position[filename])
             else:
                 if self.tail:
                     file_handler.seek(0, os.SEEK_END)
@@ -44,14 +46,14 @@ class Monitor(object):
             for line in file_handler:
                 line = line.strip()
 
-                result = self.parsers[data['parser']].parse(line, data)
+                result = self.parsers[data['parser']['name']].parse(line, data['source'], data['parser'])
                 if result:
                     self.logger.debug('Parsed line: %s' % line)
                 else:
                     self.logger.error('Failed to parse line: %s' % line)
 
-            # TODO: Persist seek_data
-            self.seek_data[filename] = file_handler.tell()
+            # TODO: Persist seek_position
+            self.seek_position[filename] = file_handler.tell()
             file_handler.close()
 
         except IOError:

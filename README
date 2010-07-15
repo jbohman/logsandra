@@ -23,13 +23,12 @@ The Cassandra bindings are not automatically installed.
 Installation
 ------------
 To install Logsandra you run this command:
-    
+
     python setup.py install
 
-It is also possible to directly start using logsandra-httpd.py and logsandra-monitord.py without installing Logsandra to your site-package directory if all 
-required modules are all ready installed.
+It is also possible to use Logsandra without installing it, just make sure that all required Python modules are installed and ready to be imported.
 
-The current keyspace configuration for Cassandra needed for Logsandra to work is:
+The current Cassandra keyspace configuration needed by Logsandra:
 
     <Keyspaces>
         <Keyspace Name="logsandra">
@@ -43,7 +42,7 @@ The current keyspace configuration for Cassandra needed for Logsandra to work is
         </Keyspace>
     </Keyspaces>
 
-The keyspace definition might be obsolete in future releases of Cassandra (0.7+) where you can programmatically create and drop keyspaces.
+The keyspace definition might be obsolete in future releases of Cassandra (0.7+) and Logsandra where you can programmatically create and drop keyspaces.
 
 Usage
 -----
@@ -51,3 +50,4 @@ Usage
 
 Configuration
 -------------
+

@@ -1,6 +1,8 @@
 import re
 import dateutil.parser
 
+from logsandra.monitor.parsers import BaseParser
+
 clf = {
     '%h': r'(?P<host>\S+)',
     '%l': r'\S+',
@@ -19,15 +21,11 @@ clf = {
     '%v': r'(?P<server>\S+)'
 }
 
-class ClfParser(object):
+class ClfParser(BaseParser):
 
-    def __init__(self, log_entries):
-        self.log_entries = log_entries
-
-    def parse(self, line, data):
-        print data
+    def parse(self, line, source, data):
         parts = []
-        for element in data['clf_format'].split(' '):
+        for element in data['format'].split(' '):
             parts.append(clf[element])
 
         # TODO: optimize by storing compiled regex?
@@ -73,6 +71,6 @@ class ClfParser(object):
             keywords.append('server:%s' % result['server'])
             keywords.append(result['server'])
 
-        date = dateutil.parser.parse(result['time'], fuzzy=True).replace(tzinfo=None)
+        date = dateutil.parser.parse(result['time'], fuzzy=True)
 
-        return self.log_entries.add(date, line, data['source'], keywords)
+        return self.log_entries.add(date=date, entry=line, source=source, keywords=keywords)

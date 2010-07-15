@@ -40,6 +40,9 @@ class LogEntry(object):
         if not keywords:
             raise Error('Missing keywords')
 
+        # TODO: Better handling of dates?
+        date = date.replace(tzinfo=None)
+
         key = uuid.uuid1()
         self.client.cf_entries.insert(str(key.hex), {'ident': str(self.client.ident), 'source': source, 'date': date.strftime('%Y-%m-%d %H:%M:%S'), 'entry': str(entry)})
 
