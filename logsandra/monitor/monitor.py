@@ -5,6 +5,7 @@ import uuid
 import struct
 import pycassa
 import logging
+import imp
 
 # Local imports
 from logsandra.monitor.watchers import Watcher
@@ -22,8 +23,15 @@ class Monitor(object):
         self.tail = tail
         self.seek_position = {}
 
-        # TODO: Automatically load parsers
-        self.parsers = {'clf': ClfParser(LogEntry(self.client))}
+        self.parsers = {}
+        log_entry = LogEntry(self.client)
+        parsers_path = os.path.join(os.path.dirname(imp.find_module('logsandra/monitor/')[1]), 'parsers/')
+        parsers_files = [filename[:-3] for filename in os.listdir(parsers_path) if filename.endswith('.py') and not filename.startswith('__')]
+        parsers_temp = __import__('logsandra.monitor.parsers', globals(), locals(), parsers_files, -1)
+        for filename in parsers_files:
+            module = getattr(parsers_temp, filename)
+            classname = '%sParser' % (filename.capitalize())
+            self.parsers[filename] = getattr(module, classname)(log_entry)
 
     def run(self):
         self.logger.debug('Starting watcher')
