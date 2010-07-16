@@ -23,6 +23,6 @@ class InotifyWatcher(object):
         notifier = pyinotify.Notifier(self.wm, EventHandler(callback=self.callback), self.update_freq)
         for entity in self.entities:
             # TODO: proc_fun, to add more information about file
-            self.wm.add_watch(entity['name'], pyinotify.IN_MODIFY, rec=entity['recursive'])
+            self.wm.add_watch(entity['path'], pyinotify.IN_MODIFY, rec=entity['recursive'])
 
         notifier.loop()

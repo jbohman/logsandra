@@ -14,7 +14,7 @@ from logsandra.model import CassandraClient, LogEntry
 
 
 class Monitor(object):
-
+    
     def __init__(self, settings, tail=False):
         self.logger = logging.getLogger('logsandra.monitord')
         self.settings = settings

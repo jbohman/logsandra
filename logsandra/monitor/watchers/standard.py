@@ -42,22 +42,22 @@ class StandardWatcher(object):
     def _find_files_generator(self):
         for entity in self.entities:
             # Is directory
-            if os.path.isdir(entity['name']):
+            if os.path.isdir(entity['path']):
                 if entity['recursive']:
-                    for path in os.walk(entity['name']):
+                    for path in os.walk(entity['path']):
                         if path[2]:
                             for filename in path[2]:
                                 filename = os.path.join(os.path.abspath(path[0]), filename)
                                 yield filename, entity
                 else:
-                    for filename in os.listdir(entity['name']):
-                        filename = os.path.abspath(entity['name']) + '/' + filename
+                    for filename in os.listdir(entity['path']):
+                        filename = os.path.join(os.path.abspath(entity['path']), filename)
                         if os.path.isfile(filename):
                             yield filename, entity
             # Is file
             else:
-                if os.path.exists(os.path.expanduser(entity['name'])):
-                    filename = os.path.abspath(os.path.expanduser(entity['name']))
+                if os.path.exists(os.path.expanduser(entity['path'])):
+                    filename = os.path.abspath(os.path.expanduser(entity['path']))
                     yield filename, entity
                 else:
                     raise Error('Invalid path, cannot monitor it')

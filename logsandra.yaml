@@ -13,7 +13,7 @@ cassandra_timeout: '5'
 
 # List of paths (files and directories) to monitor
 paths:
-  - name: ~/coding/cassandra/access.log
+  - path: ~/coding/cassandra/access.log
     recursive: False
     parser: 
       name: 'clf'

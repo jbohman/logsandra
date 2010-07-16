@@ -5,7 +5,7 @@ Logsandra is a log management application written in Python and using Cassandra 
 
 Requirements
 ------------
-Cassandra 0.6 or higher and the following python requirements:
+Cassandra 0.6.x, Python 2.6/2.7 (not tested with Python 3.x) and the following Python modules:
 
     * Pylons >= 1.0
     * Jinja2
@@ -15,9 +15,7 @@ Cassandra 0.6 or higher and the following python requirements:
     * CherryPy >= 3.1
     * Thrift
     * ordereddict
-    * Cassandra
-
-The Cassandra bindings are not automatically installed.
+    * Cassandra (not automatically installed during the installation phase)
 
 
 Installation
@@ -26,9 +24,12 @@ To install Logsandra you run this command:
 
     python setup.py install
 
-It is also possible to use Logsandra without installing it, just make sure that all required Python modules are installed and ready to be imported.
+All Python modules will be automatically installed by that command except for the Cassandra bindings.
 
-The current Cassandra keyspace configuration needed by Logsandra:
+
+Configuration
+-------------
+To use Logsandra, you need to configure your Cassandra cluster. Below is the current Keyspace configuration needed by Logsandra:
 
     <Keyspaces>
         <Keyspace Name="logsandra">
@@ -37,47 +38,58 @@ The current Cassandra keyspace configuration needed by Logsandra:
             <ColumnFamily Name="by_date_data" CompareWith="LongType" />
             <ColumnFamily Name="categories" CompareWith="UTF8Type" />
           <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
-          <ReplicationFactor>1</ReplicationFactor>
+          <ReplicationFactor>3</ReplicationFactor>
           <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
         </Keyspace>
     </Keyspaces>
 
-The keyspace definition might be obsolete in future releases of Cassandra (0.7+) and Logsandra where you can programmatically create and drop keyspaces.
+(In Cassandra 0.7 and higher you will not need to change the Keyspace configuration manually, but as for now Cassandra 0.7 is in development and not supported by Logsandra)
 
-Configuration
--------------
-The main configuration file is logsandra.yaml, the format is yaml.
+
+The main configuration file for Logsandra is logsandra.yaml, the format is yaml. Below is a list of configuration variables (including type and optional/required):
 
     ident               identity of the logsandra server [String, Required]
-    httpd_host          the host on which to serve the logsandra web service [String]
-    httpd_port          the port on which to serve the logsandra web service [String]
-    httpd_config        name of the pylons configuration file [String]
-    cassandra_host      the cassandra host to connect too [String]
-    cassandra_port      the cassandra port to connect too [String]
-    cassandra_timeout   how long to wait if the cassandra cluster do not respond [String]
 
-    paths               a list of paths on which the monitoring service will monitor [List]
-        name            the path [String]
-        recrusive       if a directory, should it enter subdirectories [True/False]
-        parser          a dictionary of the type of parser to use and arguments to the parser [List]
-            name        the name of the parser [String]
-            ...         see parser for arguments
+    httpd_host          the host on which to serve the logsandra web service [String, Required]
+    httpd_port          the port on which to serve the logsandra web service [String, Required]
+    httpd_config        name of the pylons configuration file [String]
+
+    cassandra_host      the cassandra host to connect too [String, Required]
+    cassandra_port      the cassandra port to connect too [String, Required]
+    cassandra_timeout   how long to wait if the cassandra cluster do not respond [String, Optional]
+
+    paths               a list of paths to monitor [List, Optional]
+      path              a path, directory or file [String, Required]
+      recrusive         if a directory, should it enter subdirectories [True/False, Optional]
+      parser            a dictionary containing the name of parser to use and arguments to the parser [Dictionary, Required]
+        name            the name of the parser [String, Required]
+        ...             for arguments, see parser code [Depends, Optional]
+
+Logsandra is built on Pylons and therefore a Pylons configuration file should be present for Logsandras web service to work. 
 
 Usage
 -----
-Logsandra consists of two scripts:
+Logsandra consists of two main scripts, which both acts as a daemon, below is the usage pattern:
 
-    1. logsandra-httpd.py
-    2. logsandra-monitord.py
+    python logsandra-httpd.py [options] start|stop|restart
+    python logsandra-monitord.py [options] start|stop|restart
 
-The first starts the web daemon and the second starts the monitoring daemon. Make sure you have looked over the configuration files and then just run both of these commands and logsandra should be up and running.
+If you want a list of options invoke either one these commands:
+
+    python logsandra-httpd.py --help
+    python logsandra-monitord.py --help
+
+An example setup is to run logsandra-httpd on one server and logsandra-monitord on all servers producing log files. Logsandra-monitord will send the data to the specified Cassandra Cluster. 
+
 
 
 Create your own parser
 ----------------------
-To create your own parser you need to create a python file with the name of the parser, the name should be in lower case. 
+To create your own Logsandra parser you need to create a python file in this directory:
 
-An example, the filename is foo.py:
+    logsandra/monitor/parsers/
+
+The name of the file should be in lower case and end with '.py', an example of a files content (the filename is foo.py):
 
     from logsandra.monitor.parsers import BaseParser
 
@@ -87,4 +99,4 @@ An example, the filename is foo.py:
             keywords = []
             return self.log_entries.add(date=date, entry=line, source=source, keywords=keywords)
 
-A better example is to study how existing parsers work in logsandra/monitor/parsers/ directory. Worth noting is that the class name should be the same as the filename but capitalized and 'Parser' appended to it.
+A better example is to study how existing parsers work in logsandra/monitor/parsers/ directory. 
