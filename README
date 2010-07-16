@@ -44,10 +44,47 @@ The current Cassandra keyspace configuration needed by Logsandra:
 
 The keyspace definition might be obsolete in future releases of Cassandra (0.7+) and Logsandra where you can programmatically create and drop keyspaces.
 
-Usage
------
-
-
 Configuration
 -------------
+The main configuration file is logsandra.yaml, the format is yaml.
 
+    ident               identity of the logsandra server [String, Required]
+    httpd_host          the host on which to serve the logsandra web service [String]
+    httpd_port          the port on which to serve the logsandra web service [String]
+    httpd_config        name of the pylons configuration file [String]
+    cassandra_host      the cassandra host to connect too [String]
+    cassandra_port      the cassandra port to connect too [String]
+    cassandra_timeout   how long to wait if the cassandra cluster do not respond [String]
+
+    paths               a list of paths on which the monitoring service will monitor [List]
+        name            the path [String]
+        recrusive       if a directory, should it enter subdirectories [True/False]
+        parser          a dictionary of the type of parser to use and arguments to the parser [List]
+            name        the name of the parser [String]
+            ...         see parser for arguments
+
+Usage
+-----
+Logsandra consists of two scripts:
+
+    1. logsandra-httpd.py
+    2. logsandra-monitord.py
+
+The first starts the web daemon and the second starts the monitoring daemon. Make sure you have looked over the configuration files and then just run both of these commands and logsandra should be up and running.
+
+
+Create your own parser
+----------------------
+To create your own parser you need to create a python file with the name of the parser, the name should be in lower case. 
+
+An example, the filename is foo.py:
+
+    from logsandra.monitor.parsers import BaseParser
+
+    class FooParser(BaseParser):
+        def parse(self, line, source, data):
+            date = None
+            keywords = []
+            return self.log_entries.add(date=date, entry=line, source=source, keywords=keywords)
+
+A better example is to study how existing parsers work in logsandra/monitor/parsers/ directory. Worth noting is that the class name should be the same as the filename but capitalized and 'Parser' appended to it.
