@@ -18,3 +18,8 @@ paths:
     parser: 
       name: 'clf'
       format: '%h %l %u %t %r %s %O %{Referer}i %{User-Agent}i'
+
+  - path: ~/coding/cassandra/syslog
+    recursive: False
+    parser:
+      name: 'syslog'
