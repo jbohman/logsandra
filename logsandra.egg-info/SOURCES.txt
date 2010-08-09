@@ -29,7 +29,6 @@ logsandra/lib/base.py
 logsandra/lib/helpers.py
 logsandra/model/__init__.py
 logsandra/monitor/__init__.py
-logsandra/monitor/config.py
 logsandra/monitor/monitor.py
 logsandra/monitor/parsers/__init__.py
 logsandra/monitor/parsers/clf.py
@@ -46,5 +45,5 @@ logsandra/tests/test_models.py
 logsandra/tests/functional/__init__.py
 logsandra/tests/functional/test_log.py
 logsandra/utils/__init__.py
+logsandra/utils/config.py
 logsandra/utils/daemon.py
-logsandra/utils/model.py

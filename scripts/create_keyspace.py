@@ -6,13 +6,13 @@ from thrift.protocol.TBinaryProtocol import TBinaryProtocolAccelerated
 from cassandra import Cassandra
 from cassandra.ttypes import *
 
-KEYSPACE_NAME = 'logsandra'
+KEYSPACE = 'logsandra'
 
 class CassandraClientHelper(Cassandra.Client, object):
 
     def __init__(self, host, port):
         self._socket = TSocket.TSocket(host, port)
-        self._transport = TTransport.TBufferedTransport(self._socket)
+        self._transport = TTransport.TFramedTransport(self._socket)
         self._protocol = TBinaryProtocol.TBinaryProtocolAccelerated(self._transport)
         super(CassandraClientHelper, self).__init__(self._protocol)
 
@@ -25,18 +25,24 @@ class CassandraClientHelper(Cassandra.Client, object):
 if __name__ == '__main__':
 
     # Keyspace
-    logsandra = KsDef(name=KEYSPACE_NAME, strategy_class='org.apache.cassandra.locator.RackUnawareStrategy', replication_factor=1, cf_defs=[])
+    logsandra = KsDef(name=KEYSPACE, strategy_class='org.apache.cassandra.locator.RackUnawareStrategy', replication_factor=1, cf_defs=[])
 
     # Column families
-    entries = CfDef(table=KEYSPACE_NAME, name='entries', column_type='Standard', clock_type='Timestamp', comparator_type='BytesType', 
+    column_families = {
+        'entries': CfDef(keyspace=KEYSPACE, name='entries', column_type='Standard', clock_type='Timestamp', comparator_type='BytesType',
+                        reconciler='', comment='', row_cache_size=0, preload_row_cache=False, key_cache_size=200000),
+        'by_date': CfDef(keyspace=KEYSPACE, name='by_date', column_type='Standard', clock_type='Timestamp', comparator_type='LongType',
+                        reconciler='', comment='', row_cache_size=0, preload_row_cache=False, key_cache_size=200000),
+        'by_date_data': CfDef(keyspace=KEYSPACE, name='by_date_data', column_type='Standard', clock_type='Timestamp', comparator_type='LongType',
+                        reconciler='', comment='', row_cache_size=0, preload_row_cache=False, key_cache_size=200000),
+        'categories': CfDef(keyspace=KEYSPACE, name='categories', column_type='Standard', clock_type='Timestamp', comparator_type='UTF8Type',
                         reconciler='', comment='', row_cache_size=0, preload_row_cache=False, key_cache_size=200000)
-    by_date = CfDef(table=KEYSPACE_NAME, name='by_date', column_type='Standard', clock_type='Timestamp', comparator_type='LongType', 
-                        reconciler='', comment='', row_cache_size=0, preload_row_cache=False, key_cache_size=200000)
-    column_families = {'entries': entries, 'by_date': by_date}
+    }
 
     # Connect to a Cassandra node
     client = CassandraClientHelper('localhost', 9160)
     with client:
+
         # Describe keyspaces
         try:
             keyspaces = client.describe_keyspaces()
@@ -44,22 +50,21 @@ if __name__ == '__main__':
             print 'Thrift: %s' % tx.message
 
         # If keyspace do not exists, add it
-        if KEYSPACE_NAME not in keyspaces:
+        if KEYSPACE not in keyspaces:
             try: 
                 result = client.system_add_keyspace(logsandra)
-                print 'Added keyspace: %s [%s]' % (KEYSPACE_NAME, result)
+                print 'Added keyspace: %s [%s]' % (KEYSPACE, result)
             except Thrift.TException, tx:
                 print 'Thrift: %s' % tx.message
         else:
-            print 'Keyspace %s, already added' % (KEYSPACE_NAME)
+            print 'Keyspace %s, already added' % (KEYSPACE)
 
-       
         # Set keyspace
-        client.set_keyspace(KEYSPACE_NAME)
+        client.set_keyspace(KEYSPACE)
 
         # Describe keyspace
         try:
-            keyspace = client.describe_keyspace(KEYSPACE_NAME)
+            keyspace = client.describe_keyspace(KEYSPACE)
         except Thrift.TException, tx:
             print 'Thrift: %s' % tx.message
 

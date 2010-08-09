@@ -16,7 +16,6 @@ setup(
         "Pylons>=1.0",
         "Jinja2",
         "PyYAML",
-        "Pycassa",
         "python-dateutil",
         "CherryPy>=3.1",
         "Thrift",
