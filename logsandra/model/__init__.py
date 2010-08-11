@@ -24,11 +24,11 @@ class CassandraClient(object):
     
     def __init__(self, ident, host, port, timeout):
         self.ident = ident
-        self.client = pycassa.connect(['%s:%s' % (host, port)], timeout=int(timeout))
+        self.client = pycassa.connect('logsandra', ['%s:%s' % (host, port)], timeout=int(timeout))
 
-        self.cf_entries = pycassa.ColumnFamily(self.client, 'logsandra', 'entries')
-        self.cf_by_date = pycassa.ColumnFamily(self.client, 'logsandra', 'by_date', dict_class=OrderedDict)
-        self.cf_categories = pycassa.ColumnFamily(self.client, 'logsandra', 'categories', dict_class=OrderedDict)
+        self.cf_entries = pycassa.ColumnFamily(self.client, 'entries')
+        self.cf_by_date = pycassa.ColumnFamily(self.client, 'by_date', dict_class=OrderedDict)
+        self.cf_categories = pycassa.ColumnFamily(self.client, 'categories', dict_class=OrderedDict)
 
 
 class LogEntry(object):
