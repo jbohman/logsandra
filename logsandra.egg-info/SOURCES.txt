@@ -32,6 +32,7 @@ logsandra/monitor/__init__.py
 logsandra/monitor/monitor.py
 logsandra/monitor/parsers/__init__.py
 logsandra/monitor/parsers/clf.py
+logsandra/monitor/parsers/syslog.py
 logsandra/monitor/watchers/__init__.py
 logsandra/monitor/watchers/inotify.py
 logsandra/monitor/watchers/standard.py

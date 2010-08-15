@@ -5,7 +5,7 @@ Logsandra is a log management application written in Python and using Cassandra 
 
 Requirements
 ------------
-Cassandra 0.6.x, Python 2.6/2.7 (not tested with Python 3.x) and the following Python modules:
+Cassandra 0.7, Python 2.6/2.7 (not tested with Python 3.x yet) and the following Python modules:
 
     * Pylons >= 1.0
     * Jinja2
@@ -15,37 +15,35 @@ Cassandra 0.6.x, Python 2.6/2.7 (not tested with Python 3.x) and the following P
     * CherryPy >= 3.1
     * Thrift
     * ordereddict
-    * Cassandra (not automatically installed during the installation phase)
+    * Cassandra
+    * virtualenv (Optional, but recommended)
 
 
 Installation
 ------------
-To install Logsandra you run this command:
+To install Logsandra it is recommended that you setup a virtual python environment using the python module virtualenv. A few simple steps:
 
-    python setup.py install
+    $ virtualenv --no-site-packages logsandra_env
+    $ cd logsandra_env
+    $ source logsandra_env/bin/activate
+    $ easy_install Pylons Jinja2 PyYAML Pycassa python-dateutil CherryPy Thrift ordereddict
+    $ 'setup cassandra bindings for python'
+    $ git clone git://github.com/jbohman/logsandra.git
+    $ cd logsandra
+    $ python scripts/create_keyspace.py
+
+Done! Logsandra should now be ready, continue to the Configuration headline.
+
+
+It is also possible to install Logsandra as an egg in your site-packages directory, it is not yet recommended but if you know what you are doing, try:
+
+    $ python setup.py install
 
 All Python modules will be automatically installed by that command except for the Cassandra bindings.
 
 
 Configuration
 -------------
-To use Logsandra, you need to configure your Cassandra cluster. Below is the current Keyspace configuration needed by Logsandra:
-
-    <Keyspaces>
-        <Keyspace Name="logsandra">
-            <ColumnFamily Name="entries" CompareWith="BytesType" />
-            <ColumnFamily Name="by_date" CompareWith="LongType" />
-            <ColumnFamily Name="by_date_data" CompareWith="LongType" />
-            <ColumnFamily Name="categories" CompareWith="UTF8Type" />
-          <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
-          <ReplicationFactor>3</ReplicationFactor>
-          <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
-        </Keyspace>
-    </Keyspaces>
-
-(In Cassandra 0.7 and higher you will not need to change the Keyspace configuration manually, but as for now Cassandra 0.7 is in development and not supported by Logsandra)
-
-
 The main configuration file for Logsandra is logsandra.yaml, the format is yaml. Below is a list of configuration variables (including type and optional/required):
 
     ident               identity of the logsandra server [String, Required]
@@ -63,29 +61,28 @@ The main configuration file for Logsandra is logsandra.yaml, the format is yaml.
       recrusive         if a directory, should it enter subdirectories [True/False, Optional]
       parser            a dictionary containing the name of parser to use and arguments to the parser [Dictionary, Required]
         name            the name of the parser [String, Required]
-        ...             for arguments, see parser code [Depends, Optional]
+        ...             for arguments, see parser source code [Depends, Optional]
 
 Logsandra is built on Pylons and therefore a Pylons configuration file should be present for Logsandras web service to work. 
 
 Usage
 -----
-Logsandra consists of two main scripts, which both acts as a daemon, below is the usage pattern:
+Logsandra consists of two daemon applications, below is the usage pattern:
 
-    python logsandra-httpd.py [options] start|stop|restart
-    python logsandra-monitord.py [options] start|stop|restart
+    $ python logsandra-httpd.py [options] start|stop|restart
+    $ python logsandra-monitord.py [options] start|stop|restart
 
 If you want a list of options invoke either one these commands:
 
-    python logsandra-httpd.py --help
-    python logsandra-monitord.py --help
+    $ python logsandra-httpd.py --help
+    $ python logsandra-monitord.py --help
 
-An example setup is to run logsandra-httpd on one server and logsandra-monitord on all servers producing log files. Logsandra-monitord will send the data to the specified Cassandra Cluster. 
-
+An example setup is to run logsandra-httpd on one server and logsandra-monitord on all servers producing log files. Logsandra-monitord will send the data to the specified Cassandra Cluster in logsandra.yaml. 
 
 
 Create your own parser
 ----------------------
-To create your own Logsandra parser you need to create a python file in this directory:
+To create your own Logsandra parser you need to create a python file in this directory (either in site-packages or where you downloaded Logsandra):
 
     logsandra/monitor/parsers/
 
@@ -98,5 +95,8 @@ The name of the file should be in lower case and end with '.py', an example of a
             date = None
             keywords = []
             return self.log_entries.add(date=date, entry=line, source=source, keywords=keywords)
+
+The first line imports the BaseParser class, it contains common methods for all parsers. Now comes a class definition, note the name of the class which is the same
+as the filename but capitali
 
 A better example is to study how existing parsers work in logsandra/monitor/parsers/ directory. 

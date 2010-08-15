@@ -25,7 +25,7 @@ class CassandraClientHelper(Cassandra.Client, object):
 if __name__ == '__main__':
 
     # Keyspace
-    logsandra = KsDef(name=KEYSPACE, strategy_class='org.apache.cassandra.locator.RackUnawareStrategy', replication_factor=1, cf_defs=[])
+    logsandra = KsDef(name=KEYSPACE, strategy_class='org.apache.cassandra.locator.SimpleStrategy', replication_factor=1, cf_defs=[])
 
     # Column families
     column_families = {
@@ -44,40 +44,26 @@ if __name__ == '__main__':
     with client:
 
         # Describe keyspaces
-        try:
-            keyspaces = client.describe_keyspaces()
-        except Thrift.TException, tx:
-            print 'Thrift: %s' % tx.message
-
+        keyspaces = client.describe_keyspaces()
+        keyspace_names = [keyspace.name for keyspace in keyspaces]
+        
         # If keyspace do not exists, add it
-        if KEYSPACE not in keyspaces:
-            try: 
-                result = client.system_add_keyspace(logsandra)
-                print 'Added keyspace: %s [%s]' % (KEYSPACE, result)
-            except Thrift.TException, tx:
-                print 'Thrift: %s' % tx.message
+        if KEYSPACE not in keyspace_names:
+            result = client.system_add_keyspace(logsandra)
+            print 'Added keyspace: %s [%s]' % (KEYSPACE, result)
         else:
             print 'Keyspace %s, already added' % (KEYSPACE)
 
-        # Set keyspace
+        # Set keyspace and describe it
         client.set_keyspace(KEYSPACE)
-
-        # Describe keyspace
-        try:
-            keyspace = client.describe_keyspace(KEYSPACE)
-        except Thrift.TException, tx:
-            print 'Thrift: %s' % tx.message
+        keyspace = client.describe_keyspace(KEYSPACE)
+        keyspace_cf_names = [cf.name for cf in keyspace.cf_defs]
 
         # Add column families
         for key, value in column_families.iteritems():
-            if key not in keyspace:
-                try: 
-                    result = client.system_add_column_family(value)
-                    print 'Added column family: %s [%s]' % (key, result)
-                except Thrift.TException, tx:
-                    print 'Thrift: %s' % tx.message
-                except InvalidRequestException, e:
-                    print 'Cassandra: %s' % e
+            if key not in keyspace_cf_names:
+                result = client.system_add_column_family(value)
+                print 'Added column family: %s [%s]' % (key, result)
             else:
                 print 'Column family %s, already added' % (key)
 
