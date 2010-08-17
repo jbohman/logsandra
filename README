@@ -60,7 +60,7 @@ The main configuration file for Logsandra is logsandra.yaml, the format is yaml.
 
     paths               list of paths to monitor [List, Optional]
       path              directory or file [String, Required]
-      recrusive         recursivle enter subdirectories [True/False, Optional]
+      recursive         recursively enter sub directories [True/False, Optional]
       parser            dictionary containing parser name and arguments [Dictionary, Required]
         name            name of the parser [String, Required]
         ...             arguments, see specific parser [Depends, Optional]
