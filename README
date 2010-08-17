@@ -48,24 +48,25 @@ To use Logsandra, you need to configure your Cassandra cluster. Below is the cur
 
 The main configuration file for Logsandra is logsandra.yaml, the format is yaml. Below is a list of configuration variables (including type and optional/required):
 
-    ident               identity of the logsandra server [String, Required]
+    ident               identity of the logsandra server [String, Optional/Discovery]
 
-    httpd_host          the host on which to serve the logsandra web service [String, Required]
-    httpd_port          the port on which to serve the logsandra web service [String, Required]
+    httpd_host          host on which to serve the logsandra web service [String, Required]
+    httpd_port          port on which to serve the logsandra web service [String, Required]
     httpd_config        name of the pylons configuration file [String]
 
-    cassandra_host      the cassandra host to connect too [String, Required]
-    cassandra_port      the cassandra port to connect too [String, Required]
-    cassandra_timeout   how long to wait if the cassandra cluster do not respond [String, Optional]
+    cassandra_host      cassandra host to connect too [String, Required]
+    cassandra_port      cassandra port to connect too [String, Required]
+    cassandra_timeout   in seconds until connection is aborted if no response is delivered [String, Optional]
 
-    paths               a list of paths to monitor [List, Optional]
-      path              a path, directory or file [String, Required]
-      recrusive         if a directory, should it enter subdirectories [True/False, Optional]
-      parser            a dictionary containing the name of parser to use and arguments to the parser [Dictionary, Required]
-        name            the name of the parser [String, Required]
-        ...             for arguments, see parser code [Depends, Optional]
+    paths               list of paths to monitor [List, Optional]
+      path              directory or file [String, Required]
+      recrusive         recursivle enter subdirectories [True/False, Optional]
+      parser            dictionary containing parser name and arguments [Dictionary, Required]
+        name            name of the parser [String, Required]
+        ...             arguments, see specific parser [Depends, Optional]
 
-Logsandra is built on Pylons and therefore a Pylons configuration file should be present for Logsandras web service to work. 
+Logsandra is built on Pylons and therefore a Pylons configuration file should be present for Logsandras web service to work.
+
 
 Usage
 -----
@@ -80,7 +81,6 @@ If you want a list of options invoke either one these commands:
     python logsandra-monitord.py --help
 
 An example setup is to run logsandra-httpd on one server and logsandra-monitord on all servers producing log files. Logsandra-monitord will send the data to the specified Cassandra Cluster. 
-
 
 
 Create your own parser
