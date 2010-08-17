@@ -5,8 +5,12 @@ def parse(config_file):
     config = yaml.load(file_handler.read())
 
     if 'ident' not in config:
-        raise Exception('Config %s must contain an ident' % config_file)
-
+        import socket
+        ident = socket.gethostname()
+        if not ident:
+            raise Exception('Config %s must contain an ident' % config_file)
+        else:
+            config['ident'] = ident
 
     if 'httpd_address' not in config:
         config['httpd_address'] = '0.0.0.0'

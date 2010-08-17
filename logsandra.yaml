@@ -1,5 +1,5 @@
 # Ident
-ident: 'Logsandra Server 1'
+#ident: 'Logsandra Server 1'
 
 # Web service
 httpd_host: '0.0.0.0'
