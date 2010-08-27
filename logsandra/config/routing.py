@@ -20,8 +20,13 @@ def make_map(config):
 
     # CUSTOM ROUTES HERE
     map.connect('index', '/', controller='index', action='index')
-    map.connect('/log/', controller='log', action='index')
+    map.connect('/log', controller='log', action='index')
+    map.connect('/graph', controller='graph', action='index')
+    map.connect('/graph/view', controller='graph', action='view')
+    map.connect('/graph/ajax', controller='graph', action='ajax')
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
+
+    map.redirect('/*(url)/', '/{url}', _redirect_code='301 Moved Permanently')
 
     return map

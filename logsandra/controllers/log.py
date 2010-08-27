@@ -1,8 +1,5 @@
 import logging
 import datetime
-import time
-import pycassa
-import struct
 
 from pylons import request, response, session, tmpl_context as c, url, config
 from pylons.controllers.util import abort, redirect

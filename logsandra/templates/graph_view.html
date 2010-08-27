@@ -1,0 +1,27 @@
+{%- extends "base.html" %}
+
+{% block head %}
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+        $.getJSON('{{ url(controller='graph', action='ajax') }}', {'keyword': "{{ c.keyword }}"}, function(result) {
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Date');
+            data.addColumn('number', 'Count');
+            data.addRows(result.result[0])
+            data.sort({column: 0});
+
+            var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+            chart.draw(data, {width: 800, height: 480, title: ''});
+        });
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="chart_div"></div>
+
+{% endblock %}

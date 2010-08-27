@@ -4,10 +4,18 @@
         <meta charset="utf-8">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <title>Logsandra</title>
+        <script type="text/javascript" src="{{ url('/jquery-1.4.2.min.js') }}"></script>
+        {% block head %}{% endblock %}
     </head>
     <body>
 
         <h1>Logsandra</h1>
+        <div id="navigation">
+            <ul>
+                <li><a href="{{ url(controller='log', action='index') }}">Search</a></li>
+                <li><a href="{{ url(controller='graph', action='index') }}">Graph</a></li>
+            </ul>
+        </div>
         <div id="content">
             {% block content %}{% endblock %}
         </div>

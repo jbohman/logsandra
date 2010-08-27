@@ -7,10 +7,14 @@
 
     {% if c.prev_url %}
         <a href="{{ c.prev_url }}">Prev</a>
+    {% else %}
+        Prev
     {% endif %}
 
     {% if c.next_url %}
         <a href="{{ c.next_url }}">Next</a>
+    {% else %}
+        Next
     {% endif %}
 {% endif %}
 

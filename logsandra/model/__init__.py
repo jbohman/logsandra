@@ -6,6 +6,7 @@ import uuid
 import pycassa
 from cassandra.ttypes import NotFoundException
 from ordereddict import OrderedDict
+from collections import defaultdict
 
 __all__ = ['CassandraClient', 'LogEntry']
 
@@ -50,6 +51,26 @@ class LogEntry(object):
             self.client.cf_by_date.insert(str(keyword), {to_long(date): str(key.hex)})
 
         return True
+
+    def get_date_count(self, keyword, column_next='', column_finish='', column_count=100):
+        if column_next:
+            column_next = long_struct.pack(column_next)
+
+        try:
+            result = self.client.cf_by_date.get(str(keyword), column_start=column_next, column_count=column_count, column_reversed=True)
+        except NotFoundException:
+            return [], None
+
+        month_dict = defaultdict(int)
+        last = None
+        for key, value in result.items():
+            date = from_long(key)
+            hours = datetime.datetime(date.year, date.month, date.day, date.hour, 0, 0)
+            month_dict[hours] += 1
+            last = key
+        
+        return [(str(k), month_dict[k]) for k in sorted(month_dict.keys(), reverse=True)], long_struct.unpack(last)[0] - 1
+
 
     def get_by_keyword(self, keyword, column_start='', column_finish='', column_count=30, action_next=None, action_prev=None):
         if action_next and action_prev:
