@@ -28,7 +28,7 @@ class GraphController(BaseController):
         if 'next' in request.GET and request.GET['next']:
             column_next = long(request.GET['next'])
 
-        return {'result': log_entries.get_date_count(keyword, column_next=column_next)}
+        return {'result': log_entries.get_date_count(keyword, column_next=column_next, column_count=250)}
         
     def error(self):
         return 'Error, could not parse date'

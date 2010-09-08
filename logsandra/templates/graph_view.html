@@ -5,22 +5,38 @@
 <script type="text/javascript">
     google.load("visualization", "1", {packages:["corechart"]});
     google.setOnLoadCallback(drawChart);
-    function drawChart() {
-        $.getJSON('{{ url(controller='graph', action='ajax') }}', {'keyword': "{{ c.keyword }}"}, function(result) {
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'Date');
-            data.addColumn('number', 'Count');
-            data.addRows(result.result[0])
-            data.sort({column: 0});
 
-            var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
-            chart.draw(data, {width: 800, height: 480, title: ''});
+    function updateChart(keyword, next, data, chart) {
+        jQuery.getJSON('{{ url(controller='graph', action='ajax') }}', {'keyword': keyword, 'next': next}, function(result) {
+            if(result.result[0].length > 0) { 
+                data.addRows(result.result[0])
+                data.sort({column: 0});
+                chart.draw(data, {width: 800, height: 480, title: ''});
+                updateChart(keyword, result.result[1], data, chart)
+            } else {
+                jQuery('#loading_div').html('');
+                return true;
+            }
         });
+    }
+
+    function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Date');
+        data.addColumn('number', 'Count');
+
+        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+
+        updateChart({{ c.keyword }}, '', data, chart);
+
+        jQuery('#loading_div').html('<img src="{{ url('/loading.gif') }}" />');
     }
 </script>
 {% endblock %}
 
 {% block content %}
+
+<div id="loading_div"></div>
 
 <div id="chart_div"></div>
 
